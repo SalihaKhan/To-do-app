@@ -18,6 +18,9 @@ def display_menu():
     print("5. Mark Task Complete/Incomplete")
     print("6. Exit")
     print("="*40)
+    print("Additional commands: save, load, backup, restore, list-backups, help")
+    print("Type 'help' for more information on commands")
+    print("="*40)
 
 
 def get_user_input(prompt: str) -> str:

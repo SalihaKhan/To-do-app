@@ -5,38 +5,54 @@ Implements a command-line interface for managing todo tasks.
 
 import sys
 import os
+import atexit
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from models.task import Task
 from services.task_service import TaskService
 from utils.helpers import display_menu, get_user_input, validate_task_id
+from cli.parser import parse_and_execute_command
+from commands.help import display_help
 
 
 def main():
     """Main function to run the Todo CLI application."""
     print("Welcome to the Todo CLI Application!")
-    
+
+    # Initialize task service with persistence
     task_service = TaskService()
-    
+
+    # Register auto-save on exit
+    atexit.register(lambda: task_service.save_tasks())
+
     while True:
         display_menu()
-        choice = get_user_input("Enter your choice (1-6): ")
-        
-        if choice == "1":
+        user_input = get_user_input("Enter your choice (1-6) or command: ")
+
+        # Check if it's a command that should be parsed by the CLI parser
+        if parse_and_execute_command(task_service, user_input):
+            continue  # Command was handled by the parser, continue to next iteration
+
+        # Handle traditional menu choices
+        if user_input == "1":
             add_task(task_service)
-        elif choice == "2":
+        elif user_input == "2":
             list_tasks(task_service)
-        elif choice == "3":
+        elif user_input == "3":
             update_task(task_service)
-        elif choice == "4":
+        elif user_input == "4":
             delete_task(task_service)
-        elif choice == "5":
+        elif user_input == "5":
             mark_task_status(task_service)
-        elif choice == "6":
+        elif user_input == "6":
             print("Thank you for using the Todo CLI Application. Goodbye!")
+            # Save tasks before exiting
+            task_service.save_tasks()
             break
+        elif user_input.lower() == "help":
+            display_help()
         else:
-            print("Invalid choice. Please enter a number between 1 and 6.")
+            print("Invalid choice. Please enter a number between 1 and 6, or a command.")
 
 
 def add_task(task_service):
